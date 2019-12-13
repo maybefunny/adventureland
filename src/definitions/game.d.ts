@@ -117,7 +117,7 @@ declare global {
   function show_json(stuff: any): void;
   function can_move(args: { map: string; x: number; y: number; going_x: number; going_y: number }): boolean;
   function stop(what: string): void;
-
+  function send_gold(name: string, amount: number): void;
   function draw_circle(x: number, y: number, radius: number, size?: number, color?: number): Drawing;
   function draw_line(x: number, y: number, x2: number, y2: number, size?: number, color?: number): Drawing;
 
