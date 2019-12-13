@@ -43,6 +43,7 @@ function getAuthCookie(): string {
 const saveMap: { [filename: string]: SaveSlot } = {
   "./src/main.ts": mkSaveSlot("main", 1),
   "./src/utils/utils.ts": mkSaveSlot("utils", 2),
+  "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
   // "./src/ai/priest.ts": mkSaveSlot("priest", 2),
   // "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
   // "./src/ai/mage.ts": mkSaveSlot("mage", 4),
