@@ -1,13 +1,15 @@
-function test() {
-    game_log("test")
+export function makeButton(name, callback: () => void) {
+    let $ = parent.$;
+    let tlc = $("#topleftcorner");
+    tlc.find(`#${name}div`).empty();
+    $(`#${name}div`).remove()
+    let button = $(`<div id="${name}div"></div>`).html(`<button class="gamebutton" id="${name}">${name}</button>`);
+    button.appendTo(tlc);
+    $(`#${name}div`).click(callback);
 }
-let $ = parent.$;    
-let tlc = $("#topleftcorner"); 
-tlc.find("#invitealldiv").empty();
-$('#invitealldiv').remove()
-let button = $('<div id="invitealldiv"></div<').html('<button class="gamebutton" id="inviteall">Invite</button>');
-button.appendTo(tlc);
-$("#invitealldiv").click(function() {
-    send_party_invite("WizardJorbo")
-    send_party_invite("FatherJorbo")
-});
+
+export function clearGameLog() {
+    let $ = parent.$;
+    let gamelog = $("#gamelog");
+    gamelog.clear();
+}
