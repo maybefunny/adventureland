@@ -41,7 +41,8 @@ function getAuthCookie(): string {
 // This structure determines which files are compiled as well as
 // how they are saved to AL
 const saveMap: { [filename: string]: SaveSlot } = {
-  "./src/ai/ranger.ts": mkSaveSlot("ranger", 1),
+  "./src/main.ts": mkSaveSlot("main", 1),
+  "./src/utils/utils.ts": mkSaveSlot("utils", 2),
   // "./src/ai/priest.ts": mkSaveSlot("priest", 2),
   // "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
   // "./src/ai/mage.ts": mkSaveSlot("mage", 4),
