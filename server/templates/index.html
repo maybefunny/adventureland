@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+    setInterval(function () {
+        $('#stuff').load(document.URL + ' #stuff');
+    }, 1000);
+</script>
+<html>
+
+<body>
+    <div id="stuff">
+        {% for dict_item in data %}
+            {% for key, value in dict_item.items() %}
+            <div>{{key | capitalize }}: {{ value  }}</div>
+            {% endfor %}
+            <br>
+        {% endfor %}
+    </div>
+</body>
+
+</html>
