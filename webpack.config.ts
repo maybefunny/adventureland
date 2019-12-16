@@ -41,8 +41,8 @@ function getAuthCookie(): string {
 // This structure determines which files are compiled as well as
 // how they are saved to AL
 const saveMap: { [filename: string]: SaveSlot } = {
-  "./src/main.ts": mkSaveSlot("main", 1),
-  "./src/utils/utils.ts": mkSaveSlot("utils", 2),
+  "./src/ai/warrior.ts": mkSaveSlot("warrior", 1),
+   "./src/utils/utils.ts": mkSaveSlot("utils", 9),
   "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
   // "./src/ai/priest.ts": mkSaveSlot("priest", 2),
   // "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
@@ -133,6 +133,7 @@ class ALUploader {
 
 const config: webpack.Configuration = {
   mode: "development",
+  node: { fs: 'empty' },
   // list all the files here that you would like to build individually.
   devtool: "eval-source-map",
   entry: Object.entries(saveMap).reduce((prev, [filename, save]) => ({ ...prev, [save.name]: filename }), {}),
