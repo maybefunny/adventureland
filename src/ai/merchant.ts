@@ -1,12 +1,10 @@
-import { makeButton, clearGameLog } from "utils/utils";
+import { makeButton, clearGameLog, clearChat, is_me } from "utils/utils";
 
 const sleep = time => new Promise((resolve) => setTimeout(resolve, time));
 const array = ["WarriorJorbo", "WizardJorbo", "FatherJorbo"];
-
+load_code("utils");
 makeButton("getgold", () => {
-    array.forEach((value, index) => {
-        send_cm(value, "I want gold");
-    })
+    send_cm("WarriorJorbo", "pos");
 });
 
 //  Upgrade script
@@ -73,14 +71,85 @@ function okBoomer(itemName: string) {
 makeButton("upgrade", () => {
     okBoomer("shoes");
 });
-
+let count = 0;
+const warrior: any = {};
+const mage: any = {};
+const priest: any = {};
 on_cm = (from: string, data: any) => {
-    game_log(from + " sent a cm");
-};
+    if (is_me(from)) {
+        if (data.message === "pos") {
+            smart_move(data.x, data.y);
+            if (!character.moving) {
+                array.forEach((value, index) => {
+                    send_cm(value, "gold");
+                });
+            }
+        } else if (data.message === "home") {
+            count++;
+            if (count >= 3) {
+                count = 0;
+                smart_move("main");
+            }
+        } else if (data.message === "data") {
+            if (from === "WarriorJorbo") {
+                warrior["name"] = data.name;
+                warrior["gold"] = data.gold;
+                warrior["hp"] = data.hp;
+                warrior["max_hp"] = data.max_hp;
+                warrior["xp"] = data.xp;
+                warrior["max_xp"] = data.max_xp;
+                warrior["x"] = data.x.toFixed(2);
+                warrior["y"] = data.y.toFixed(2);
+                warrior["map"] = data.map;
+            } else if (from === "WizardJorbo") {
+                mage["name"] = data.name;
+                mage["gold"] = data.gold;
+                mage["hp"] = data.hp;
+                mage["max_hp"] = data.max_hp;
+                mage["xp"] = data.xp;
+                mage["max_xp"] = data.max_xp;
+                mage["x"] = data.x.toFixed(2);
+                mage["y"] = data.y.toFixed(2);
+                mage["map"] = data.map;
+            } else if (from === "FatherJorbo") {
+                priest["name"] = data.name;
+                priest["gold"] = data.gold;
+                priest["hp"] = data.hp;
+                priest["max_hp"] = data.max_hp;
+                priest["xp"] = data.xp;
+                priest["max_xp"] = data.max_xp;
+                priest["x"] = data.x.toFixed(2);
+                priest["y"] = data.y.toFixed(2);
+                priest["map"] = data.map;
+            }
 
-handle_command = (command, args) => {
-    game_log(`/${command}`)
-    if(command === "clear"){
-        clearGameLog();
+        }
     }
 };
+
+const merchant = {
+    name: character.name,
+    gold: character.gold,
+    hp: character.hp,
+    max_hp: character.max_hp,
+    xp: character.xp,
+    max_xp: character.max_xp,
+    x: character.x.toFixed(2),
+    y: character.y.toFixed(2),
+    map: get_map()["name"]
+}
+
+setInterval(() => {
+    array.forEach((value, index) => {
+        send_cm(value, { message: "data" });
+    })
+    const obj = [warrior, mage, priest, merchant];    
+    fetch("http://98.185.243.44:6969/", {
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        method: "POST",
+        body: JSON.stringify(obj)
+    })
+}, 1000);
+map_key("1", "snippet", "parent.stop_runner();");
+map_key("2", "snippet", "parent.start_runner();");
+map_key("3", "snippet", 'load_code("merchant")');
