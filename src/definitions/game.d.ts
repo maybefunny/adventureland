@@ -36,6 +36,8 @@ export interface Entity {
   id?: string;
   real_x?: number;
   real_y?: number;
+  x: number;
+  y: number;
   going_x?: number;
   going_y?: number;
   hp: number;
@@ -76,6 +78,7 @@ export interface GameInfo {
 
 declare global {
   interface Window {
+    $: any;
     clear_game_logs(): void;
     party_list: string[];
     party: { [name: string]: ICharacter };
@@ -114,13 +117,19 @@ declare global {
   function distance(entity1: Entity, entity2: Entity): number;
   function move(x: number, y: number): void;
   function xmove(x: number, y: number): void;
+  function smart_move(x: number, y: number): void;
+  function smart_move(location: string): void;
   function show_json(stuff: any): void;
   function can_move(args: { map: string; x: number; y: number; going_x: number; going_y: number }): boolean;
   function stop(what: string): void;
   function send_gold(name: string, amount: number): void;
   function draw_circle(x: number, y: number, radius: number, size?: number, color?: number): Drawing;
   function draw_line(x: number, y: number, x2: number, y2: number, size?: number, color?: number): Drawing;
-
+  function use_hp_or_mp(): void;
+  function get_targeted_monster(): Monster;
+  function get_nearest_monster(args: object): Monster;
+  function is_in_range(target: Entity, skill?: SkillInfo): boolean;
+  function is_moving(entity: Entity): boolean;
   var handle_command: undefined | ((command: string, args: string) => void);
   var on_cm: undefined | ((from: string, data: any) => void);
   // var on_map_click: undefined | ((x: number, y: number) => boolean);
