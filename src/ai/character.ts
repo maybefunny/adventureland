@@ -40,7 +40,6 @@ export function start_attacking(state: State, monsterTargets: any) {
 			);
 			// Walk half the distance
 		} else if (can_attack(target)) {
-      game_log(get_target_of(target));
       if(state === State.BOSS_MODE && character.ctype !== "warrior" && get_target_of(target).id !== "notlusW"){
         set_message("Waiting for warrior");
         return null;
