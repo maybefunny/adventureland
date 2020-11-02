@@ -3,18 +3,19 @@ var purchase_amount = 1000;//How many potions to buy at once.
 var potion_types = ["hpot0", "mpot0"];//The types of potions to keep supplied.
 
 export enum State {
-	ATTACK_MODE,
+  ATTACK_MODE,
+  BOSS_MODE,
 	IDLE,
 	GIVE_GOLD,
 	RESUPPLY_POTIONS,
 }
 export function start_attacking(state: State, monsterTargets: any) {
-	if (state !== State.ATTACK_MODE || character.rip || is_moving(character)) { return };
+	if (state !== State.ATTACK_MODE && state !== State.BOSS_MODE || character.rip || is_moving(character)) { return };
 	let target;
 	
 	target = get_targeted_monster();
 	if (!target) {
-		if (character.ctype === "warrior") {
+		if ((state === State.BOSS_MODE && character.ctype === "warrior") || state === State.ATTACK_MODE) {
       target = find_viable_targets(monsterTargets)[0];
 			// target = get_nearest_monster({ min_xp: 100, max_att: 120 });
 		}
@@ -39,7 +40,8 @@ export function start_attacking(state: State, monsterTargets: any) {
 			);
 			// Walk half the distance
 		} else if (can_attack(target)) {
-      if(character.ctype !== "warrior" && get_target_of(target) !== "notlusW"){
+      game_log(get_target_of(target));
+      if(state === State.BOSS_MODE && character.ctype !== "warrior" && get_target_of(target).id !== "notlusW"){
         set_message("Waiting for warrior");
         return null;
       } 
@@ -57,9 +59,9 @@ export function resupply_potions(){
 }
 
 // credit: https://github.com/Spadar/AdventureLand
-export function state_controller(){
+export function state_controller(currentState: State){
 	//Default to farming
-	var new_state = State.ATTACK_MODE;
+	var new_state = currentState;
 	//Do we need potions?
 	for(var type_id of potion_types){
 		var num_potions = num_items(type_id);
