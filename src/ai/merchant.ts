@@ -1,10 +1,10 @@
 import { makeButton, clearGameLog, clearChat, is_me } from "utils/utils";
 
 const sleep = time => new Promise((resolve) => setTimeout(resolve, time));
-const array = ["WarriorJorbo", "WizardJorbo", "FatherJorbo"];
+const array = ["notlusW", "notlusM", "notlussPr"];
 load_code("utils");
 makeButton("getgold", () => {
-    send_cm("WarriorJorbo", "pos");
+    send_cm("notlusW", "pos");
 });
 
 //  Upgrade script
@@ -91,7 +91,7 @@ on_cm = (from: string, data: any) => {
                 smart_move("main");
             }
         } else if (data.message === "data") {
-            if (from === "WarriorJorbo") {
+            if (from === "notlusW") {
                 warrior["name"] = data.name;
                 warrior["gold"] = data.gold;
                 warrior["hp"] = data.hp;
@@ -101,7 +101,7 @@ on_cm = (from: string, data: any) => {
                 warrior["x"] = data.x.toFixed(2);
                 warrior["y"] = data.y.toFixed(2);
                 warrior["map"] = data.map;
-            } else if (from === "WizardJorbo") {
+            } else if (from === "notlusM") {
                 mage["name"] = data.name;
                 mage["gold"] = data.gold;
                 mage["hp"] = data.hp;
@@ -111,7 +111,7 @@ on_cm = (from: string, data: any) => {
                 mage["x"] = data.x.toFixed(2);
                 mage["y"] = data.y.toFixed(2);
                 mage["map"] = data.map;
-            } else if (from === "FatherJorbo") {
+            } else if (from === "notlussPr") {
                 priest["name"] = data.name;
                 priest["gold"] = data.gold;
                 priest["hp"] = data.hp;

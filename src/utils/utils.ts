@@ -1,5 +1,5 @@
 import fs from "fs";
-export const characters = ["WarriorJorbo", "WizardJorbo", "FatherJorbo", "Patreon"];
+export const characters = ["notlusW", "notlusssRa", "notlussPr", "notlusMc"];
 export function makeButton(name: string, callback: () => void) {
     const $ = parent.$;
     const tlc = $("#topleftcorner");

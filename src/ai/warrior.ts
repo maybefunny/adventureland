@@ -12,16 +12,16 @@ setInterval(() => {
                 let current_sum = 0;
                 let max_sum = 0;
  
-                let war = get_player("WarriorJorbo")                
+                let war = get_player("notlusW")                
                 if(war.max_hp - max.hp < 100){
-                    heal("WarriorJorbo")
+                    heal("notlusW")
                 }
             }
             break;
         case State.GIVE_GOLD:
-            send_gold("Patreon", character.gold * .90);
+            send_gold("notlusMc", character.gold * .90);
             state = State.ATTACK_MODE;
-            send_cm("Patreon", { message: "home" });
+            send_cm("notlusMc", { message: "home" });
             break;
     }
 }, 1000 / 4);
@@ -42,7 +42,7 @@ setInterval(function () {
 on_cm = (from: string, data: any) => {    
     if (is_me(from)) {
         if (data.message === "data") {            
-            send_cm("Patreon", {
+            send_cm("notlusMc", {
                 message: "data", 
                 name: character.name,
                 gold: character.gold,
