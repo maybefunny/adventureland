@@ -30,6 +30,15 @@ makeButton("attack", () => {
     state = State.ATTACK_MODE;
 });
 
+setInterval(function () {
+  loot();
+
+  //Heal With Potions if we're below 75% hp.
+  if (character.hp / character.max_hp < 0.75 || character.mp / character.max_mp < 0.75) {
+      use_hp_or_mp();
+  }
+}, 500 );
+
 on_cm = (from: string, data: any) => {    
     if (is_me(from)) {
         if (data.message === "data") {            

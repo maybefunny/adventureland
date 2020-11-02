@@ -4,9 +4,6 @@ export enum State {
     GIVE_GOLD,
 }
 export function start_attacking(state: State) {
-    use_hp_or_mp();
-    loot();
-
     if (state !== State.ATTACK_MODE || character.rip || is_moving(character)) { return };
     let target;
 
@@ -16,7 +13,7 @@ export function start_attacking(state: State) {
             target = get_nearest_monster({ min_xp: 100, max_att: 120 });
         }
         else {
-            target = get_target_of(get_player("WarriorJorbo"))
+            target = get_target_of(get_player("notlusW"))
         }
         if (target) {
             change_target(target);
