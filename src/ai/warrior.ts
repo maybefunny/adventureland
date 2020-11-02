@@ -39,7 +39,7 @@ setInterval(function () {
 	loot();
 	
 	//Heal With Potions if we're below 75% hp.
-	if (character.hp / character.max_hp < 0.75 || character.mp / character.max_mp < 0.75) {
+	if (character.max_hp - character.hp > 200 || character.max_mp - character.mp > 300 || character.mp == 0) {
 		use_hp_or_mp();
 	}
 }, 500 );
