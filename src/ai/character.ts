@@ -47,7 +47,8 @@ export function start_attacking(state: State, monsterTargets: any) {
 			attack(target);
 		}
 }
-	
+
+// credit: https://github.com/Spadar/AdventureLand
 export function resupply_potions(){
   if(!smart.moving) smart_move({ to:"potions"});
   if(character.x == 56 && character.y == -122){
@@ -55,6 +56,7 @@ export function resupply_potions(){
   } 
 }
 
+// credit: https://github.com/Spadar/AdventureLand
 export function state_controller(){
 	//Default to farming
 	var new_state = State.ATTACK_MODE;
@@ -71,6 +73,7 @@ export function state_controller(){
 }
 
 //Buys potions until the amount of each potion_type we defined in the start of the script is above the min_potions value.
+// credit: https://github.com/Spadar/AdventureLand
 function buy_potions(){
 	if(empty_slots() > 0){
 		for(var type_id of potion_types){
@@ -86,6 +89,7 @@ function buy_potions(){
 }
 
 //Returns the number of items in your inventory for a given item name;
+// credit: https://github.com/Spadar/AdventureLand
 function num_items(name: string)
 {
 	var item_count = character.items.filter(item => item != null && item.name == name).reduce(function(a,b){ return a + (b["q"] || 1);
@@ -95,6 +99,7 @@ function num_items(name: string)
 }
 
 //Returns how many inventory slots have not yet been filled.
+// credit: https://github.com/Spadar/AdventureLand
 function empty_slots()
 {
 	return character.esize;
@@ -106,6 +111,7 @@ function empty_slots()
 ////3. The monster is not targeting someone outside your party.
 //The order of the list is as follows:
 ////Monsters are ordered by distance.
+// credit: https://github.com/Spadar/AdventureLand
 function find_viable_targets(monsterTargets : any) {
   var monsters = Object.values(parent.entities).filter(
       mob => (mob.target == null

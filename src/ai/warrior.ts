@@ -34,6 +34,7 @@ makeButton("attack", () => {
 	state = State.ATTACK_MODE;
 });
 
+// credit: https://github.com/Spadar/AdventureLand
 setInterval(function () {
 	loot();
 	
