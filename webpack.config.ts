@@ -44,7 +44,7 @@ const saveMap: { [filename: string]: SaveSlot } = {
   "./src/ai/warrior.ts": mkSaveSlot("warrior", 1),
    "./src/utils/utils.ts": mkSaveSlot("utils", 9),
   "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
-  // "./src/ai/priest.ts": mkSaveSlot("priest", 2),
+  "./src/ai/farm.js": mkSaveSlot("farm", 2),
   // "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
   // "./src/ai/mage.ts": mkSaveSlot("mage", 4),
 };
