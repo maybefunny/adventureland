@@ -39,7 +39,11 @@ export function start_attacking(state: State, monsterTargets: any) {
 			);
 			// Walk half the distance
 		} else if (can_attack(target)) {
-			set_message("Attacking");
+      if(character.ctype !== "warrior" && get_target_of(target) !== "notlusW"){
+        set_message("Waiting for warrior");
+        return null;
+      } 
+      set_message("Attacking");
 			attack(target);
 		}
 }
