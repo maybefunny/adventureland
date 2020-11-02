@@ -2,6 +2,7 @@ import { makeButton, is_me, characters } from "../utils/utils"
 import { start_attacking, State, resupply_potions, state_controller } from "./character";
 let map;
 let state = State.ATTACK_MODE;
+let monsterTargets = ['armadillo'];
 
 load_code('utils')
 setInterval(() => {
@@ -9,7 +10,7 @@ setInterval(() => {
   state = state_controller();
 	switch (state) {
 		case State.ATTACK_MODE:
-			start_attacking(state)
+			start_attacking(state, monsterTargets)
 			if(character.ctype === "priest"){				
         let war = get_player("notlusW")
 				if(war.max_hp - war.hp > 100){

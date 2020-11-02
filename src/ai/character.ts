@@ -8,14 +8,15 @@ export enum State {
 	GIVE_GOLD,
 	RESUPPLY_POTIONS,
 }
-export function start_attacking(state: State) {
+export function start_attacking(state: State, monsterTargets: any) {
 	if (state !== State.ATTACK_MODE || character.rip || is_moving(character)) { return };
 	let target;
 	
 	target = get_targeted_monster();
 	if (!target) {
 		if (character.ctype === "warrior") {
-			target = get_nearest_monster({ min_xp: 100, max_att: 120 });
+      target = find_viable_targets(monsterTargets)[0];
+			// target = get_nearest_monster({ min_xp: 100, max_att: 120 });
 		}
 		else {
 			target = get_target_of(get_player("notlusW"))
@@ -23,8 +24,11 @@ export function start_attacking(state: State) {
 		if (target) {
 			change_target(target);
 		} else {
-			set_message("No Monsters");
-			return null;
+      if(!smart.moving){
+        set_message("Moving to a target");
+        smart_move({ to: monsterTargets[0] });
+        return null;
+      }
 		}
 	}
 	
@@ -90,4 +94,38 @@ function num_items(name: string)
 function empty_slots()
 {
 	return character.esize;
+}
+
+//Returns an ordered array of all relevant targets as determined by the following:
+////1. The monsters' type is contained in the 'monsterTargets' array.
+////2. The monster is attacking you or a party member.
+////3. The monster is not targeting someone outside your party.
+//The order of the list is as follows:
+////Monsters are ordered by distance.
+function find_viable_targets(monsterTargets : any) {
+  var monsters = Object.values(parent.entities).filter(
+      mob => (mob.target == null
+                  || parent.party_list.includes(mob.target)
+                  || mob.target == character.name)
+              && (mob.type == "monster"
+                  && (parent.party_list.includes(mob.target)
+                      || mob.target == character.name))
+                  || monsterTargets.includes(mob.mtype));
+
+  //Order monsters by whether they're attacking us, then by distance.
+  monsters.sort(function (current, next) {
+      var dist_current = distance(character, current);
+      var dist_next = distance(character, next);
+      // Else go to the 2nd item
+      if (dist_current < dist_next) {
+          return -1;
+      }
+      else if (dist_current > dist_next) {
+          return 1
+      }
+      else {
+          return 0;
+      }
+  });
+  return monsters;
 }
