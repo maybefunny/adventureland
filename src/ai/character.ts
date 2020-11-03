@@ -11,7 +11,14 @@ export enum State {
 }
 export function start_attacking(state: State, monsterTargets: any) {
 	if (state !== State.ATTACK_MODE && state !== State.BOSS_MODE || character.rip || is_moving(character)) { return };
-	let target;
+  let target;
+  
+  if(character.ctype === "priest"){				
+    let war = get_player("notlusW")
+    if(war.max_hp - war.hp > 100){
+      heal(war);
+    }
+  }
 	
 	target = get_targeted_monster();
 	if (!target) {

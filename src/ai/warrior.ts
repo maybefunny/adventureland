@@ -14,12 +14,6 @@ setInterval(() => {
 			break;
     case State.BOSS_MODE:
       start_attacking(state, monsterTargets)
-      if(character.ctype === "priest"){				
-        let war = get_player("notlusW")
-        if(war.max_hp - war.hp > 100){
-          heal(war);
-        }
-      }
       break;
 		case State.GIVE_GOLD:
 			send_gold("notlusMc", character.gold * .90);
