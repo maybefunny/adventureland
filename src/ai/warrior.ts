@@ -1,13 +1,13 @@
 import { makeButton, is_me, characters } from "../utils/utils"
 import { start_attacking, State, resupply_potions, state_controller } from "./character";
 let map;
-let state = State.BOSS_MODE;
+let baseState = State.ATTACK_MODE;
 let monsterTargets = ['armadillo'];
 
 load_code('utils')
 setInterval(() => {
   map = get_map()
-  state = state_controller(state);
+  let state = state_controller(baseState);
 	switch (state) {
 		case State.ATTACK_MODE:
 			start_attacking(state, monsterTargets)
@@ -23,7 +23,7 @@ setInterval(() => {
       break;
 		case State.GIVE_GOLD:
 			send_gold("notlusMc", character.gold * .90);
-			state = State.ATTACK_MODE;
+			baseState = State.ATTACK_MODE;
 			send_cm("notlusMc", { message: "home" });
 			break;
 		case State.RESUPPLY_POTIONS:
@@ -33,12 +33,13 @@ setInterval(() => {
 	}
 }, 1000 / 4);
 
-makeButton("switch state", () => {
-	if(state === State.ATTACK_MODE){
-    state = State.BOSS_MODE;
+makeButton("switch", () => {
+	if(baseState === State.ATTACK_MODE){
+    baseState = State.BOSS_MODE;
   }else{
-    state = State.ATTACK_MODE;
+    baseState = State.ATTACK_MODE;
   };
+  game_log('switched');
 });
 
 // credit: https://github.com/Spadar/AdventureLand
