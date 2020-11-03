@@ -143,12 +143,11 @@ setInterval(() => {
     array.forEach((value, index) => {
         send_cm(value, { message: "data" });
     })
-    const obj = [warrior, mage, priest, merchant];    
-    fetch("http://98.185.243.44:6969/", {
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        method: "POST",
-        body: JSON.stringify(obj)
-    })
+    const obj = [warrior, mage, priest, merchant];
+    const response = fetch("http://68.183.227.231:6969/", {
+      method: 'POST',
+      body: JSON.stringify(obj),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'} });
 }, 1000);
 map_key("1", "snippet", "parent.stop_runner();");
 map_key("2", "snippet", "parent.start_runner();");
