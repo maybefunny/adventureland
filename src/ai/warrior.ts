@@ -30,10 +30,11 @@ setInterval(() => {
 makeButton("switch", () => {
 	if(baseState === State.ATTACK_MODE){
     baseState = State.BOSS_MODE;
+    game_log('switched to: boss');
   }else{
     baseState = State.ATTACK_MODE;
+    game_log('switched to: farm');
   };
-  game_log('switched');
 });
 
 // credit: https://github.com/Spadar/AdventureLand
