@@ -15,8 +15,10 @@ export function start_attacking(state: State, monsterTargets: any) {
   
   if(character.ctype === "priest"){				
     let war = get_player("notlusW")
-    if(war.max_hp - war.hp > 100){
-      heal(war);
+    if(war !== null){
+      if(war.max_hp - war.hp > 100){
+        heal(war);
+      }
     }
   }
 	
