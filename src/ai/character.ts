@@ -24,7 +24,7 @@ export function start_attacking(state: State, monsterTargets: any) {
 	
 	target = get_targeted_monster();
 	if (!target) {
-		if ((state === State.BOSS_MODE && character.ctype === "warrior") || state === State.ATTACK_MODE) {
+		if ((state === State.BOSS_MODE && character.ctype === "warrior") || (state === State.ATTACK_MODE && character.hp/character.max_hp > 0.75)) {
       target = find_viable_targets(monsterTargets)[0];
 			// target = get_nearest_monster({ min_xp: 100, max_att: 120 });
 		}
