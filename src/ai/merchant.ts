@@ -8,9 +8,7 @@ makeButton("getgold", () => {
 });
 
 //  Upgrade script
-function okBoomer(itemName: string) {
-    // Set this to the name of the item to upgrade
-    const maxLevel: number = 7;
+function okBoomer(itemName: string, maxLevel: number) {
     // let itemName = 'pants';
     const inventoryArray = character.items;
     const itemIndex: number[] = [];
@@ -53,7 +51,6 @@ function okBoomer(itemName: string) {
 
                 setTimeout(upgradeItem, 250, item + 1, scroll);
             } else {
-                game_log('else')
                 upgrade(itemIndex[item], scroll);
                 setTimeout(upgradeItem, 250, item, scroll);
             }
