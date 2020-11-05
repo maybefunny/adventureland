@@ -94,7 +94,9 @@ setInterval(() => {
     }
     send_gold("notlusMc", character.gold - goldMinimumTreshold);
   }
-  if(character.esize == 42 - skippedItems){
+  if(character.esize >=20 ){
+    storingLoot = false;
+    baseState = State.ATTACK_MODE;
     send_cm("notlusMc", {
       message: "loot:done",
       name: character.name,
