@@ -92,7 +92,7 @@ setInterval(() => {
       }
       item.q?send_item(merch.name, i, item.q):send_item(merch.name, i, 1);
     }
-    send_gold("notlusMc", character.gold - goldMinimumTreshold);
+    if(character.gold > goldMinimumTreshold) send_gold("notlusMc", character.gold - goldMinimumTreshold);
   }
   if(character.esize >=20 ){
     storingLoot = false;
