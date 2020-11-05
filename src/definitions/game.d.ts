@@ -146,6 +146,7 @@ declare global {
   function item_grade(item: ItemInfo): number;
   function locate_item(name: string): number;
   function buy(name: string, q?: number): Promise<Resolve>;
+  function sell(num: number, q: number): void;
   function use_skill(name: string, target?: Entity): void;
   function get_party(): {[index:string]: ICharacter};
 
