@@ -2,6 +2,16 @@ import { makeButton, clearGameLog, clearChat, is_me, characters } from "utils/ut
 
 const sleep = time => new Promise((resolve) => setTimeout(resolve, time));
 
+// use regen skill
+setInterval(() => {
+  if(can_use("regen_hp") && character.max_hp - character.hp > 1){
+    use_skill("regen_hp");
+  }
+  if(can_use("regen_mp") && character.max_mp - character.mp > 1){
+    use_skill("regen_mp");
+  }
+}, 1000/4);
+
 load_code("utils");
 makeButton("getgold", () => {
     send_cm("notlusW", "pos");
