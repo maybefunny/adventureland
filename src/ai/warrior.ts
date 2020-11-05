@@ -2,7 +2,9 @@ import { makeButton, is_me, characters } from "../utils/utils"
 import { start_attacking, State, resupply_potions, state_controller } from "./character";
 let map;
 let baseState = State.ATTACK_MODE;
-let monsterTargets = ['armadillo'];
+let monsterTargets = new Array();
+
+monsterTargets = ["minimush"];
 
 load_code('utils')
 setInterval(() => {

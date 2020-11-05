@@ -9,8 +9,8 @@ export enum State {
 	GIVE_GOLD,
 	RESUPPLY_POTIONS,
 }
-export function start_attacking(state: State, monsterTargets: any) {
-	if (state !== State.ATTACK_MODE && state !== State.BOSS_MODE || character.rip || is_moving(character)) { return };
+export function start_attacking(state: State, monsterTargets: Array<string>) {
+	if (state !== State.ATTACK_MODE && state !== State.BOSS_MODE || character.rip || is_moving(character) || !monsterTargets.length) { return };
   let target;
   
   if(character.ctype === "priest"){				
