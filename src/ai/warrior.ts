@@ -83,8 +83,8 @@ setInterval(() => {
   if(!storingLoot) return;
   const merch = get_player('notlusMc');
   let skippedItems = 0;
-  if(merch){
-    for (var i = 0; i < 43; i++) {
+  if(merch && is_in_range(merch, 'mluck')){
+    for (var i = 0; i < 42; i++) {
       const item = character.items[i];
       if(!item || parent.G.items[item.name].type === "pot"){
         skippedItems++;
