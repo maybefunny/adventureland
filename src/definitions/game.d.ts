@@ -1,3 +1,6 @@
+import { promises } from "fs";
+import { Resolve } from "webpack";
+
 type ItemName = string; // TODO: Same as with skills
 export interface ICharacter extends Entity {
   party?: string;
@@ -10,6 +13,9 @@ export interface ICharacter extends Entity {
   xp: number;
   max_xp: number;
   moving: boolean;
+  map: string;
+  esize: number;
+  stand: boolean;
 }
 
 export type EntityId = string;
@@ -53,7 +59,11 @@ export interface Entity {
   dead: boolean;
   npc?: boolean;
   // Buffs are 's' ???? -_-
-  s?: { [T in keyof SkillName]: BuffInfo };
+  s: { [T in keyof SkillName]: BuffInfo };
+}
+
+export interface mluck {
+  ms: number;
 }
 
 export interface Monster extends Entity {
@@ -96,14 +106,15 @@ declare global {
   function start_character(name: string, script: string): void;
   function stop_character(name: string, script: string): void;
   function map_key(key: string, thing: string, arg?: string): void;
-  function can_use(skill: SkillName): boolean;
+  function can_use(skill: SkillName | string): boolean;
   function can_attack(entity: Entity): boolean;
   function buy_with_gold(item: ItemName, q: number): void;
   function use(skill: SkillName, target?: Entity): void;
   function heal(entity: Entity): void;
   function attack(entity: Entity): void;
   function loot(): void;
-  function upgrade(itemPos: number, scrollPos: number, offeringPos?: number): void;
+  function upgrade(itemPos: number, scrollPos: number, offeringPos?: number): Promise<Resolve>;
+  function compound(item1Pos: number, item2Pos: number, item3Pos: number, scrollPos: number, offeringPos?: number): Promise<Resolve>;
   function load_code(foo: string): void;
   function send_cm(to: string, data: any): void;
   function game_log(msg: string, color?: string): void;
@@ -119,6 +130,7 @@ declare global {
   function xmove(x: number, y: number): void;
   function smart_move(x: number, y: number): void;
   function smart_move(location: string): void;
+  function smart_move(locattion: Object): void;
   function show_json(stuff: any): void;
   function can_move(args: { map: string; x: number; y: number; going_x: number; going_y: number }): boolean;
   function stop(what: string): void;
@@ -128,8 +140,15 @@ declare global {
   function use_hp_or_mp(): void;
   function get_targeted_monster(): Monster;
   function get_nearest_monster(args: object): Monster;
-  function is_in_range(target: Entity, skill?: SkillInfo): boolean;
+  function is_in_range(target: Entity, skill?: string): boolean;
   function is_moving(entity: Entity): boolean;
+  function send_item(reciever: string | undefined, num: number, quantity: number): void;
+  function item_grade(item: ItemInfo): number;
+  function locate_item(name: string): number;
+  function buy(name: string, q?: number): Promise<Resolve>;
+  function use_skill(name: string, target?: Entity): void;
+  function get_party(): {[index:string]: ICharacter};
+
   var handle_command: undefined | ((command: string, args: string) => void);
   var on_cm: undefined | ((from: string, data: any) => void);
   // var on_map_click: undefined | ((x: number, y: number) => boolean);
