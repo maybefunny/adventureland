@@ -2,6 +2,44 @@ import { makeButton, clearGameLog, clearChat, is_me, characters } from "utils/ut
 
 const sleep = time => new Promise((resolve) => setTimeout(resolve, time));
 
+enum State{
+  IDLE,
+  MLUCK,
+  POTS,
+  NOTAFK,
+  LOOT,
+}
+
+let state = State.IDLE;
+let mluckTargets = new Array();
+let lootTargets = new Array();
+let party: any;
+
+setInterval(() => {
+  stateController();
+  switch(state){
+    case State.IDLE:
+      set_message('idle');
+      idling();
+      break;
+    case State.MLUCK:
+      set_message('mluck');
+      castMluck();
+      break;
+    case State.POTS:
+      set_message('pots');
+      break;
+    case State.LOOT:
+      set_message('loot');
+      manageLoot();
+      break;
+    case State.NOTAFK:
+      set_message('notafk');
+      break;
+  }
+    
+}, 1000/4);
+
 // use regen skill
 setInterval(() => {
   if(can_use("regen_hp") && character.max_hp - character.hp > 1){
