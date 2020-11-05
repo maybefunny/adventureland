@@ -1,7 +1,7 @@
 const min_potions = 50; //The number of potions at which to do a resupply run.
 const purchase_amount = 1000;//How many potions to buy at once.
 const potion_types = ["hpot0", "mpot0"];//The types of potions to keep supplied.
-const goldStoreTreshold = 3000000;
+const goldStoreTreshold = 1000000;
 
 export enum State {
   ATTACK_MODE,
@@ -84,14 +84,14 @@ export function state_controller(currentState: State){
 		}
   }
   
-  if((character.s.mluck && (character.s.mluck.ms < 120000 || character.s.mluck.f != "notlusMc"))|| !character.s.mluck){
+  if((character.s.mluck && (character.s.mluck.ms < 120000 || character.s.mluck.f != "notlusMc")) || !character.s.mluck){
     send_cm("notlusMc", {
       message: "mluck",
       name: character.name,
     });
   }
 
-  if(character.gold > goldStoreTreshold || character.esize < 5){
+  if(character.gold > goldStoreTreshold || character.esize < 20){
     send_cm("notlusMc", {
       message: "loot",
       name: character.name,
