@@ -10,9 +10,11 @@ setInterval(() => {
   let state = state_controller(baseState);
 	switch (state) {
 		case State.ATTACK_MODE:
+      set_message("farm");
 			start_attacking(state, monsterTargets)
 			break;
     case State.BOSS_MODE:
+      set_message("boss");
       start_attacking(state, monsterTargets)
       break;
 		case State.GIVE_GOLD:
@@ -21,9 +23,18 @@ setInterval(() => {
 			send_cm("notlusMc", { message: "home" });
 			break;
 		case State.RESUPPLY_POTIONS:
-      set_message("buying pots");
+      set_message("waiting for pots");
 			resupply_potions();
 			break;
+    case State.IDLE:
+      set_message("idle");
+      if(can_use("regen_hp")){
+        use_skill("regen_hp");
+      }
+      if(can_use("regen_mp")){
+        use_skill("regen_mp");
+      }
+      break;
 	}
 }, 1000 / 4);
 
