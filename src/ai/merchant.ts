@@ -51,9 +51,70 @@ setInterval(() => {
 }, 1000/4);
 
 load_code("utils");
-makeButton("getgold", () => {
-    send_cm("notlusW", "pos");
+
+makeButton("switchState", () => {
+	if(state === State.IDLE){
+    state = State.NOTAFK;
+  }else{
+    state = State.IDLE;
+  };
 });
+
+makeButton("upgrade", () => {
+  const item = prompt("Please enter item name", "goo");
+  const maxLevel = prompt("Please enter upgrade max level", "0");
+  okBoomer(item, maxLevel);
+  set_message('upgrading items');
+});
+
+// control character state
+function stateController(){
+  if(mluckTargets.length){
+    stop();
+    state=State.MLUCK;
+  }
+}
+
+// idling at town with merch stand open
+function idling(){
+  if(is_moving(character)) return;
+  if(character.map != "main" || character.x != -91 || character.y != 7){
+    // set stat and log
+    smart_move({x:-91, y:7, map:"main"});
+  }else{
+    openMerchStand();
+  }
+}
+
+// cast mluck skill to player in mluckTargets
+function castMluck(){
+  if(!mluckTargets.length || is_moving(character)) return;
+  closeMerchStand();
+  const target = get_player(mluckTargets[0]);
+  const party = get_party();
+  const x = party[mluckTargets[0]].x;
+  const y = party[mluckTargets[0]].y;
+  const map = party[mluckTargets[0]].map;
+  if(target != null && !is_in_range(target, 'mluck') || target == null){
+    smart_move({
+      x: x,
+      y: y,
+      map: map,
+    });
+  }else if(target != null){
+    if(!target.s.mluck  || target.s.mluck.ms < 120000 || target.s.mluck.f != character.name){
+      use_skill('mluck', target)
+    }else{
+      mluckTargets.shift();
+      if(!mluckTargets.length) state = State.IDLE;
+    }
+  }
+}
+
+// retrieve loots from farmer and manage (upgrade, sell, bank) them
+function manageLoot(){
+  
+}
 
 //  Upgrade script
 function okBoomer(itemName: string, maxLevel: number) {
@@ -113,9 +174,25 @@ function okBoomer(itemName: string, maxLevel: number) {
     return 0;
 }
 
-makeButton("upgrade", () => {
-    okBoomer("shoes");
-});
+// check is merch stand is active
+function isMerchStandActive() {
+  return character.stand != false;
+}
+
+// Open merch stand
+function openMerchStand() {
+  if (!isMerchStandActive()) {
+    parent.open_merchant(0);
+  }
+}
+
+// Close merch stand
+function closeMerchStand() {
+  if (isMerchStandActive()) {
+    parent.close_merchant(0);
+  }
+}
+
 let count = 0;
 const warrior: any = {};
 const mage: any = {};
@@ -168,6 +245,11 @@ on_cm = (from: string, data: any) => {
                 priest["map"] = data.map;
             }
 
+        } else if (data.message === "mluck") {
+          if(!mluckTargets.includes(data.name))
+            mluckTargets.push(data.name);
+        }else{
+          show_json(data);
         }
     }
 };
