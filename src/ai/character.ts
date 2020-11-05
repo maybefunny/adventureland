@@ -77,7 +77,17 @@ export function state_controller(currentState: State){
 			new_state = State.RESUPPLY_POTIONS;
 			break;
 		}
-	}
+  }
+  
+  if((character.s.mluck && (character.s.mluck.ms < 120000 || character.s.mluck.f != "notlusMc"))|| !character.s.mluck){
+    send_cm("notlusMc", {
+      message: "mluck",
+      name: character.name,
+      map: character.map,
+      x: character.x,
+      y: character.y,
+    });
+  }
 	
 	return new_state;
 }
