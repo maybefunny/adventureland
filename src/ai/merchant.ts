@@ -1,7 +1,7 @@
-import { makeButton, clearGameLog, clearChat, is_me } from "utils/utils";
+import { makeButton, clearGameLog, clearChat, is_me, characters } from "utils/utils";
 
 const sleep = time => new Promise((resolve) => setTimeout(resolve, time));
-const array = ["notlusW", "notlusM", "notlussPr"];
+
 load_code("utils");
 makeButton("getgold", () => {
     send_cm("notlusW", "pos");
@@ -80,7 +80,7 @@ on_cm = (from: string, data: any) => {
         if (data.message === "pos") {
             smart_move(data.x, data.y);
             if (!character.moving) {
-                array.forEach((value, index) => {
+                characters.forEach((value, index) => {
                     send_cm(value, "gold");
                 });
             }
@@ -140,8 +140,10 @@ const merchant = {
 }
 
 setInterval(() => {
-    array.forEach((value, index) => {
+  party = get_party();
+    characters.forEach((value, index) => {
         send_cm(value, { message: "data" });
+        if(!party[value]) send_party_invite(value);
     })
     const obj = [warrior, mage, priest, merchant];
     const response = fetch("http://68.183.227.231:6969/", {
