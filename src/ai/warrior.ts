@@ -1,14 +1,25 @@
 import { makeButton, is_me, characters } from "../utils/utils"
 import { start_attacking, State, resupply_potions, state_controller } from "./character";
-let map;
-let baseState = State.ATTACK_MODE;
-let monsterTargets = new Array();
 
-monsterTargets = ["minimush"];
+let baseState = State.ATTACK_MODE;
+let storingLoot = false;
+let monsterTargets = new Array();
+const goldMinimumTreshold = 100000;
+
+switch (character.name){
+  case "notlusW":
+    monsterTargets = ["minimush"];
+    break;
+  case "notlusssRa":
+    monsterTargets = ["bee"];
+    break;
+  case "notlusRa2":
+    monsterTargets = ["bee"];
+    break;
+  }
 
 load_code('utils')
 setInterval(() => {
-  map = get_map()
   let state = state_controller(baseState);
 	switch (state) {
 		case State.ATTACK_MODE:
@@ -19,15 +30,15 @@ setInterval(() => {
       set_message("boss");
       start_attacking(state, monsterTargets)
       break;
-		case State.GIVE_GOLD:
-			send_gold("notlusMc", character.gold * .90);
-			baseState = State.ATTACK_MODE;
-			send_cm("notlusMc", { message: "home" });
-			break;
 		case State.RESUPPLY_POTIONS:
       set_message("waiting for pots");
 			resupply_potions();
 			break;
+    case State.STORE_LOOT:
+      set_message("loot");
+      storingLoot = true;
+      state = State.ATTACK_MODE;
+      break;
     case State.IDLE:
       set_message("idle");
       if(can_use("regen_hp")){
@@ -57,6 +68,7 @@ makeButton("addTarget", () => {
 });
 
 // credit: https://github.com/Spadar/AdventureLand
+// pots usage logic
 setInterval(function () {
 	loot();
   
@@ -65,6 +77,30 @@ setInterval(function () {
 		use_hp_or_mp();
 	}
 }, 500 );
+
+// loot storing handler
+setInterval(() => {
+  if(!storingLoot) return;
+  const merch = get_player('notlusMc');
+  let skippedItems = 0;
+  if(merch){
+    for (var i = 0; i < 43; i++) {
+      const item = character.items[i];
+      if(!item || parent.G.items[item.name].type === "pot"){
+        skippedItems++;
+        continue;
+      }
+      item.q?send_item(merch.name, i, item.q):send_item(merch.name, i, 1);
+    }
+    send_gold("notlusMc", character.gold - goldMinimumTreshold);
+  }
+  if(character.esize == 42 - skippedItems){
+    send_cm("notlusMc", {
+      message: "loot:done",
+      name: character.name,
+    });
+  }
+}, 1000/4);
 
 on_cm = (from: string, data: any) => {    
 	if (is_me(from)) {
@@ -79,7 +115,7 @@ on_cm = (from: string, data: any) => {
 				max_xp: character.max_xp,
 				x: character.x,
 				y: character.y,
-				map: get_map()["name"]
+				map: character.map
 			});
 		}
 	}
