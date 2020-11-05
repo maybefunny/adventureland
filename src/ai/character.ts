@@ -1,21 +1,24 @@
-var min_potions = 50; //The number of potions at which to do a resupply run.
-var purchase_amount = 1000;//How many potions to buy at once.
-var potion_types = ["hpot0", "mpot0"];//The types of potions to keep supplied.
+const min_potions = 50; //The number of potions at which to do a resupply run.
+const purchase_amount = 1000;//How many potions to buy at once.
+const potion_types = ["hpot0", "mpot0"];//The types of potions to keep supplied.
+const goldStoreTreshold = 3000000;
 
 export enum State {
   ATTACK_MODE,
   BOSS_MODE,
 	IDLE,
 	GIVE_GOLD,
-	RESUPPLY_POTIONS,
+  RESUPPLY_POTIONS,
+  STORE_LOOT,
 }
+
 export function start_attacking(state: State, monsterTargets: Array<string>) {
 	if (state !== State.ATTACK_MODE && state !== State.BOSS_MODE || character.rip || is_moving(character) || !monsterTargets.length) { return };
   let target;
   
   if(character.ctype === "priest"){				
     let war = get_player("notlusW")
-    if(war !== null){
+    if(war !== undefined){
       if(war.hp / war.max_hp < 0.90){
         heal(war);
       }
@@ -29,7 +32,8 @@ export function start_attacking(state: State, monsterTargets: Array<string>) {
 			// target = get_nearest_monster({ min_xp: 100, max_att: 120 });
 		}
 		else {
-			target = get_target_of(get_player("notlusW"))
+      const player = get_player("notlusW");
+			if(player) target = get_target_of(player)
 		}
 		if (target) {
 			change_target(target);
@@ -42,14 +46,15 @@ export function start_attacking(state: State, monsterTargets: Array<string>) {
 		}
 	}
 	
-	if (!is_in_range(target)) {
+	if (target && !is_in_range(target)) {
 		move(
 			character.x + (target.x - character.x) / 2,
 			character.y + (target.y - character.y) / 2
 			);
 			// Walk half the distance
-		} else if (can_attack(target)) {
-      if(state === State.BOSS_MODE && character.ctype !== "warrior" && get_target_of(target).id !== "notlusW"){
+		} else if (target && can_attack(target)) {
+      const playerTarget = get_target_of(target);
+      if(state === State.BOSS_MODE && character.ctype !== "warrior" && playerTarget && playerTarget.id !== "notlusW"){
         set_message("Waiting for warrior");
         return null;
       } 
@@ -83,10 +88,15 @@ export function state_controller(currentState: State){
     send_cm("notlusMc", {
       message: "mluck",
       name: character.name,
-      map: character.map,
-      x: character.x,
-      y: character.y,
     });
+  }
+
+  if(character.gold > goldStoreTreshold || character.esize < 5){
+    send_cm("notlusMc", {
+      message: "loot",
+      name: character.name,
+    });
+    new_state = State.STORE_LOOT;
   }
 	
 	return new_state;
