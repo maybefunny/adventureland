@@ -13,15 +13,16 @@ enum State{
 	COMPOUND,
 }
 
-let upgrading = false;
-let compounding = false;
+let upgrading:boolean = false;
+let compounding:boolean = false;
 let state = State.IDLE;
 let mluckTargets: Array<string> = [];
 let lootTargets: Array<string> = [];
-let upgradeTargets = new Array();
+let upgradeTargets: Array<number> = [];
 let compoundTargets: {[index: string]: { [index: string]: Array<number>}} = {};
 let sellTargets = new Array();
 let party: any;
+let buyingScroll:boolean = false;
 
 // Upgrade variables
 const upgradeMaxLevel = 9; //Max level it will stop upgrading items at if enabled
@@ -29,55 +30,55 @@ const gold_start = 1000000; // start upgrading at this much gold
 const gold_limit = 50000; // stop upgrading at this much gold
 
 const upgradeWhitelist: {[index: string]: number} = {
-	//ItemName, Max Level
-	// pyjamas: upgradeMaxLevel,
-	// bunnyears: upgradeMaxLevel,
-	// carrotsword: upgradeMaxLevel,
-	// firestaff: 7,
-	// fireblade: 7,
-	// staff: upgradeMaxLevel,
-	// bow: upgradeMaxLevel,
-	// sshield: 7,
-	// shield: 7,
-	// gloves: 7,
-	// shoes: 7,
-	// coat: 7,
-	// helmet: 7,
-	// pants: 7,
-	// gloves1: 7,
-	// coat1: 7,
-	// helmet1: 7,
-	// pants1: 7,
-	// shoes1: 7,
-	// harbringer: 5,
-	// oozingterror: 5,
-	// bataxe: 7,
-	// spear: 7,
-	// xmaspants: 7,
-	// xmassweater: 7,
-	// xmashat: 7,
-	// xmasshoes: 7,
-	// mittens: 7,
-	// ornamentstaff: 7,
-	// candycanesword: 7,
-	// warmscarf: 7,
-	// t2bow: 7,
-	// pmace: 7,
-	// basher: 7,
-	// harmor: 5,
-	// hgloves: 5,
-	// wingedboots: 7,
-	wshoes: 5,
-	wcap: 5,
-	wbreeches: 5,
-	wgloves: 5,
+	// ItemName, Max Level
+	// "pyjamas": upgradeMaxLevel,
+	// "bunnyears": upgradeMaxLevel,
+	// "carrotsword": upgradeMaxLevel,
+	// "firestaff": 7,
+	// "fireblade": 7,
+	// "staff": upgradeMaxLevel,
+	// "bow": upgradeMaxLevel,
+	// "sshield": 7,
+	// "shield": 7,
+	// "gloves": 7,
+	// "shoes": 7,
+	// "coat": 7,
+	// "helmet": 7,
+	// "pants": 7,
+	// "gloves1": 7,
+	// "coat1": 7,
+	// "helmet1": 7,
+	// "pants1": 7,
+	// "shoes1": 7,
+	// "harbringer": 5,
+	// "oozingterror": 5,
+	// "bataxe": 7,
+	// "spear": 7,
+	// "xmaspants": 7,
+	// "xmassweater": 7,
+	// "xmashat": 7,
+	// "xmasshoes": 7,
+	// "mittens": 7,
+	// "ornamentstaff": 7,
+	// "candycanesword": 7,
+	// "warmscarf": 7,
+	// "t2bow": 7,
+	// "pmace": 7,
+	// "basher": 7,
+	// "harmor": 5,
+	// "hgloves": 5,
+	// "wingedboots": 7,
+	"wshoes": 6,
+	"wcap": 6,
+	"wbreeches": 6,
+	"wgloves": 6,
 };
 
 const combineWhitelist: {[index: string]: number} = {
 	//ItemName, Max Level
 	wbook0: 3,
 	lostearring: 2,
-	// hpamulet: 3,
+	hpamulet: 3,
 	strearring: 3,
 	intearring: 3,
 	dexearring: 2,
@@ -97,7 +98,7 @@ const combineWhitelist: {[index: string]: number} = {
 };
 
 const sellWhitelist = [
-	'strings',
+	'stinger',
 	'hpamulet',
 	'mushroomstaff'
 ];
@@ -139,11 +140,12 @@ setInterval(() => {
 	
 }, 1000/4);
 
-// loot upgrade handler
+// loot upgrading handler
 setInterval(() => {
 	if(!upgradeTargets.length && state == State.UPGRADE) state = State.IDLE;
   if(upgrading || state != State.UPGRADE || !upgradeTargets.length || is_moving(character)) return;
   
+  closeMerchStand();
   if(character.map != "main" || character.x != -312 || character.y != -73){
     smart_move({x: -312, y: -73, map: "main"});
     return;
@@ -151,9 +153,10 @@ setInterval(() => {
 	
 	const index = upgradeTargets[0]
 	const item = character.items[index];
-	if(item){
-    const targetLevel = upgradeWhitelist[item?.name];
-		if(item.level && item.level < targetLevel){
+	if(item && item.level != undefined ){
+    const targetLevel = upgradeWhitelist[item.name];
+    // for(let i = 0; i < item.level; i++){}
+		if(item.level < targetLevel){
 			game_log("upgrading " + item?.name);
 			const grade = item_grade(item);
 			let scrollName = "";
@@ -165,28 +168,41 @@ setInterval(() => {
 				scrollName = "scroll2";
 			}
 			const scrollSlot = locate_item(scrollName);
-			if(scrollSlot == -1){
+			if(scrollSlot == -1 && !buyingScroll){
+        buyingScroll = true;
 				buy(scrollName).then(() => {
+          buyingScroll = false;
 					upgrading = true;
-					upgrade(index, scrollSlot).finally(() => {
+					upgrade(index, scrollSlot).then(() => {
 						upgrading = false;
-					});
-				});
+					}).catch(() => {
+            upgrading = false;
+          });
+				}).catch(() => {
+          buyingScroll = false;
+          upgradeTargets.shift();
+        });
 			}else{
 				upgrading = true;
-				upgrade(index, scrollSlot).finally(() => {
+				upgrade(index, scrollSlot).then(() => {
 					upgrading = false;
-				});
+				}).catch(() => {
+          upgrading = false;
+        });
 			}
 		}else{
+      console.log("popped (max level): " + index);
 			upgradeTargets.shift();
 		}
+  }else{
+    console.log("popped (item not found || level is not number): " + index);
+    upgradeTargets.shift();
   }
-}, 1000/4);
+}, 750);
 
-// loot combine handler
+// loot combining handler
 setInterval(() => {
-  if(!Object.keys(compoundTargets).length && state == State.COMPOUND) state = State.IDLE;
+  if(!Object.keys(compoundTargets).length && state == State.COMPOUND) state = State.UPGRADE;
   if(compounding || state !== State.COMPOUND || !Object.keys(compoundTargets).length || is_moving(character)) return;
   
   closeMerchStand();
@@ -218,18 +234,35 @@ setInterval(() => {
             scrollName = "cscroll2";
           }
           const scrollSlot = locate_item(scrollName);
-          if(scrollSlot == -1){
-            buy(scrollName).then(() => {
+          if(scrollSlot == -1 && !buyingScroll){
+            buyingScroll = true;
+            buy(scrollName, 1).then(() => {
+              buyingScroll = false;
               compounding = true;
               compound(itemLocList[i], itemLocList[i+1], itemLocList[i+2], scrollSlot).then(() => {
-                itemLocList.slice(0,3);
+                registerLoots();
+                compounding = false;
+              }).catch(() => {
+                registerLoots();
+                compounding = false;
+              }).finally(() => {
+                registerLoots();
                 compounding = false;
               });
+            }).catch((reason) => {
+              if(reason == "cost")
+              return;
             });
           }else{
             compounding = true;
             compound(itemLocList[i], itemLocList[i+1], itemLocList[i+2], scrollSlot).then(() => {
-              itemLocList.slice(0,3);
+              registerLoots();
+              compounding = false;
+            }).catch(() => {
+              registerLoots();
+              compounding = false;
+            }).finally(() => {
+              registerLoots();
               compounding = false;
             });
           }
@@ -243,8 +276,25 @@ setInterval(() => {
     game_log('done compounding all ' + itemName);
     delete compoundTargets[itemName];
   }
+}, 1000/4);
 
+// loot selling handler
+setInterval(() => {
+  if(!sellTargets.length && state == State.SELL) state = State.COMPOUND;
+  if(state !== State.SELL || !sellTargets.length || is_moving(character)) return;
+  
+  closeMerchStand();
+  if(character.map != "main" || character.x != -312 || character.y != -73){
+    smart_move({x: -312, y: -73, map: "main"});
+    return;
+  }
 
+  const itemToSell = sellTargets[0]
+  const item = character.items[itemToSell];
+  if(item){
+    sell(itemToSell, 1);
+  }
+  sellTargets.shift();
 }, 1000/4);
 
 // use regen skill
@@ -282,24 +332,21 @@ function stateController(){
 		state= State.MLUCK;
 	}
 	
-	if(lootTargets.length  && state == State.IDLE){
-		stop();
-		state= State.LOOT;
-	}
-	
-	if(upgradeTargets.length  && state == State.IDLE){
-		stop();
-		state= State.UPGRADE;
-	}
-	
-	if(Object.keys(compoundTargets).length  && state == State.IDLE){
-		stop();
-		state= State.COMPOUND;
+	if(lootTargets.length && state == State.IDLE){
+    stop();
+    if(character.esize>20) state= State.LOOT;
+    else registerLoots();
 	}
 	
 	if(sellTargets.length  && state == State.IDLE){
 		stop();
 		state= State.SELL;
+	}else if(upgradeTargets.length  && state == State.IDLE){
+		stop();
+		state= State.UPGRADE;
+	}else if(Object.keys(compoundTargets).length  && state == State.IDLE){
+		stop();
+		state= State.COMPOUND;
 	}
 }
 
@@ -366,39 +413,46 @@ function registerLoots(){
 	for(var i = 0; i < 43; i++){
 		const item = character.items[i]
 		if(item){
-			const upgradeLevel = upgradeWhitelist[item.name];
-			if(upgradeLevel && item.level && item.level < upgradeLevel){
+      console.log("----upgrade test----");
+      const upgradeLevel = upgradeWhitelist[item.name];
+      console.log(item.name);
+      console.log(upgradeLevel);
+			if(upgradeLevel && item.level != undefined && item.level < upgradeLevel){
+        console.log('queued');
 				upgradeTargets.push(i);
-			}else{
-        const compoundLevel = combineWhitelist[item.name];
-        console.log(item.level);
-        console.log(item.name);
-        if(compoundLevel && typeof item.level == 'number' && item.level < compoundLevel ){
-          console.log('queueable');
-          if(compoundTargets[item.name]){
-            console.log('item name already exist')
-            if(compoundTargets[item.name][item.level]){
-              if(!compoundTargets[item.name][item.level].includes(i)){
-                console.log('queued')
-                compoundTargets[item.name][item.level].push(i);
-              }else{
-                console.log('queued')
-                compoundTargets[item.name][item.level] = [i];
-              }
+      }
+      
+      console.log("----compound test----");
+      const compoundLevel = combineWhitelist[item.name];
+      console.log(item.level);
+      console.log(item.name);
+      if(compoundLevel && typeof item.level == 'number' && item.level < compoundLevel ){
+        console.log('queueable');
+        if(compoundTargets[item.name]){
+          console.log('item name already exist')
+          if(compoundTargets[item.name][item.level]){
+            if(!compoundTargets[item.name][item.level].includes(i)){
+              console.log('queued')
+              compoundTargets[item.name][item.level].push(i);
             }else{
               console.log('queued')
               compoundTargets[item.name][item.level] = [i];
             }
           }else{
             console.log('queued')
-            compoundTargets[item.name] = {[item.level] : [i]};
+            compoundTargets[item.name][item.level] = [i];
           }
+        }else{
+          console.log('queued')
+          compoundTargets[item.name] = {[item.level] : [i]};
         }
+      }
+      
+      if(sellWhitelist.includes(item.name)){
+        sellTargets.push(i);
       }
 		}
 	}
-  // show_json(upgradeTargets);
-  // show_json(compoundTargets);
 }
 
 // check is merch stand is active
