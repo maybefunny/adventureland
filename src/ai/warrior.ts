@@ -48,10 +48,16 @@ makeButton("switch", () => {
   };
 });
 
+makeButton("addTarget", () => {
+  const target = prompt("Please enter your name", "goo");
+  monsterTargets.push(target);
+  show_json(monsterTargets);
+});
+
 // credit: https://github.com/Spadar/AdventureLand
 setInterval(function () {
 	loot();
-	
+  
 	//Heal With Potions if we're below 75% hp.
 	if (character.max_hp - character.hp > 200 || character.max_mp - character.mp > 300 || character.mp == 0) {
 		use_hp_or_mp();
