@@ -31,7 +31,7 @@ function getAuthCookie(): string {
   if (!fs.existsSync(".secret")) {
     throw new Error("You need to create a .secret file with your auth token.");
   }
-  const secret = fs.readFileSync(".secret").toString();
+  const secret = fs.readFileSync(".secret").toString().replace(/\r?\n|\r/g, '');
   return `auth=${secret}`;
 }
 
@@ -44,7 +44,7 @@ const saveMap: { [filename: string]: SaveSlot } = {
   "./src/ai/warrior.ts": mkSaveSlot("warrior", 1),
    "./src/utils/utils.ts": mkSaveSlot("utils", 9),
   "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
-  "./src/ai/farm.js": mkSaveSlot("farm", 2),
+  // "./src/ai/farm.js": mkSaveSlot("farm", 2),
   // "./src/ai/merchant.ts": mkSaveSlot("merchant", 3),
   // "./src/ai/mage.ts": mkSaveSlot("mage", 4),
 };

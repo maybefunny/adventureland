@@ -58,6 +58,7 @@ export interface Entity {
   transform?: any;
   dead: boolean;
   npc?: boolean;
+  range: number;
   // Buffs are 's' ???? -_-
   s: { [T in keyof SkillName]: BuffInfo };
 }
@@ -86,6 +87,13 @@ export interface GameInfo {
   monsters: { [id: string]: Monster };
 }
 
+export interface server {
+  mode: string;
+  pvp: boolean;
+  region: string;
+  id: string;
+}
+
 declare global {
   interface Window {
     $: any;
@@ -98,6 +106,7 @@ declare global {
   }
   var $: any;
   var character: ICharacter;
+  var server: server;
   var game_logs: any[];
   var G: GameInfo;
   var clear_game_logs: () => void;
@@ -132,7 +141,7 @@ declare global {
   function smart_move(location: string): void;
   function smart_move(locattion: Object): void;
   function show_json(stuff: any): void;
-  function can_move(args: { map: string; x: number; y: number; going_x: number; going_y: number }): boolean;
+  function can_move(args: { map?: string; x: number; y: number; going_x?: number; going_y?: number }): boolean;
   function stop(what: string): void;
   function send_gold(name: string, amount: number): void;
   function draw_circle(x: number, y: number, radius: number, size?: number, color?: number): Drawing;
@@ -149,6 +158,9 @@ declare global {
   function sell(num: number, q: number): void;
   function use_skill(name: string, target?: Entity): void;
   function get_party(): {[index:string]: ICharacter};
+  function change_server(region: string, name: string): void;
+  function performance_trick(): void;
+  function pause(): void;
 
   var handle_command: undefined | ((command: string, args: string) => void);
   var on_cm: undefined | ((from: string, data: any) => void);
@@ -215,4 +227,5 @@ export type SkillName =
   | "quickstab"
   | "magiport"
   | "pcoat"
-  | "scare";
+  | "scare"
+  | "holidayspirit";

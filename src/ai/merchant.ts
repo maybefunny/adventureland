@@ -1,8 +1,14 @@
 import { stat } from "fs";
-import { makeButton, clearGameLog, clearChat, is_me, characters } from "utils/utils";
+import { makeButton, is_me, characters } from "utils/utils";
+
+performance_trick();
+
+const defaultServerRegion = "US";
+const defaultServerName = "I";
 
 enum State{
 	IDLE,
+	SPIRITS,
 	MLUCK,
 	POTS,
 	NOTAFK,
@@ -31,76 +37,69 @@ const gold_limit = 50000; // stop upgrading at this much gold
 
 const upgradeWhitelist: {[index: string]: number} = {
 	// ItemName, Max Level
-	// "pyjamas": upgradeMaxLevel,
-	// "bunnyears": upgradeMaxLevel,
-	// "carrotsword": upgradeMaxLevel,
-	// "firestaff": 7,
-	// "fireblade": 7,
-	// "staff": upgradeMaxLevel,
-	// "bow": upgradeMaxLevel,
-	// "sshield": 7,
-	// "shield": 7,
-	// "gloves": 7,
-	// "shoes": 7,
-	// "coat": 7,
-	// "helmet": 7,
-	// "pants": 7,
-	// "gloves1": 7,
-	// "coat1": 7,
-	// "helmet1": 7,
-	// "pants1": 7,
-	// "shoes1": 7,
-	// "harbringer": 5,
-	// "oozingterror": 5,
-	// "bataxe": 7,
-	// "spear": 7,
-	// "xmaspants": 7,
-	// "xmassweater": 7,
-	// "xmashat": 7,
-	// "xmasshoes": 7,
-	// "mittens": 7,
-	// "ornamentstaff": 7,
-	// "candycanesword": 7,
-	// "warmscarf": 7,
-	// "t2bow": 7,
-	// "pmace": 7,
-	// "basher": 7,
-	// "harmor": 5,
-	// "hgloves": 5,
-	// "wingedboots": 7,
+	"gloves1": 6,
+	"coat1": 6,
+	"helmet1": 6,
+	"pants1": 6,
+	"shoes1": 6,
 	"wshoes": 6,
 	"wcap": 6,
+	"wattire": 6,
 	"wbreeches": 6,
 	"wgloves": 6,
+	'quiver': 8,
+	'hbow': 7,
+	'dagger': 7,
+	'ornamentstaff': 7,
+	'candycanesword': 7,
+	'merry': 6,
+	'mittens': 7,
+	't2bow': 6,
+	// 'gcape': 6,
+	'sword': 6,
+	'hgloves': 6,
+	'hboots': 6,
+	'hhelmet': 6,
+	'basher': 6
 };
 
 const combineWhitelist: {[index: string]: number} = {
 	//ItemName, Max Level
-	wbook0: 3,
-	lostearring: 2,
-	hpamulet: 3,
-	strearring: 3,
-	intearring: 3,
-	dexearring: 2,
-	hpbelt: 3,
-	ringsj: 3,
-	strring: 3,
-	intring: 3,
-	dexring: 2,
-	vitring: 3,
-	dexamulet: 2,
-	intamulet: 3,
-	stramulet: 3,
-	vitearring: 3,
-	dexbelt: 2,
-	intbelt: 3,
-	strbelt: 3
+	wbook0: 1,
+	lostearring: 1,
+	strearring: 1,
+	intearring: 1,
+	dexearring: 1,
+	strring: 1,
+	intring: 1,
+	dexring: 1,
+	dexamulet: 1,
+	intamulet: 1,
+	stramulet: 1,
+	vitearring: 1,
+	dexbelt: 1,
+	intbelt: 1,
+	strbelt: 1
 };
 
 const sellWhitelist = [
 	'stinger',
 	'hpamulet',
-	'mushroomstaff'
+	"shield",
+	"hpbelt",
+	"ringsj",
+	"vitring",
+	'xmassweater',
+	'xmaspants',
+	'xmasshoes',
+	'xmashat',
+	'xmace',
+	'warmscarf',
+	'iceskates',
+	'mushroomstaff',
+	'throwingstars',
+	'slimestaff',
+	'snowball',
 ];
 
 game_log("script is running");
@@ -112,6 +111,10 @@ setInterval(() => {
 		case State.IDLE:
 		set_message('idle');
 		idling();
+		break;
+		case State.SPIRITS:
+		set_message('spirits');
+		get_holiday_spirits();
 		break;
 		case State.MLUCK:
 		set_message('mluck');
@@ -305,9 +308,17 @@ setInterval(() => {
 	if(can_use("regen_mp") && character.max_mp - character.mp > 1){
 		use_skill("regen_mp");
 	}
+  
+	if(character.rip){
+	  respawn();
+	}
 }, 1000/4);
 
 load_code("utils");
+
+makeButton("registerLoot", () => {
+	registerLoots();
+});
 
 makeButton("switchState", () => {
 	if(state === State.IDLE){
@@ -327,28 +338,41 @@ makeButton("show", () => {
 
 // control character state
 function stateController(){
-	if(mluckTargets.length && state == State.IDLE){
+	let newState = State.IDLE;
+	if(mluckTargets.length && (state == State.IDLE || state == State.SPIRITS)){
 		stop();
-		state= State.MLUCK;
+		state = State.MLUCK;
+	}
+
+	// if(!character.s.holidayspirit && state == State.IDLE){
+	// 	stop();
+	// 	state = State.SPIRITS;
+	// }
+	
+	if(lootTargets.length && (state == State.IDLE || state == State.SPIRITS)){
+    	stop();
+		if(character.esize>20) state = State.LOOT;
+		else registerLoots();
 	}
 	
-	if(lootTargets.length && state == State.IDLE){
-    stop();
-    if(character.esize>20) state= State.LOOT;
-    else registerLoots();
-	}
-	
-	if(sellTargets.length  && state == State.IDLE){
+	if(sellTargets.length  && (state == State.IDLE || state == State.SPIRITS)){
 		stop();
-		state= State.SELL;
-	}else if(upgradeTargets.length  && state == State.IDLE){
+		state = State.SELL;
+	}else if(upgradeTargets.length  && (state == State.IDLE || state == State.SPIRITS)){
 		stop();
-		state= State.UPGRADE;
-	}else if(Object.keys(compoundTargets).length  && state == State.IDLE){
+		state = State.UPGRADE;
+	}else if(Object.keys(compoundTargets).length  && (state == State.IDLE || state == State.SPIRITS)){
 		stop();
-		state= State.COMPOUND;
+		state = State.COMPOUND;
 	}
 }
+
+// get holiday spirits from christmas tree
+function get_holiday_spirits(){
+  if(!smart.moving) smart_move({ to:"town"});
+	parent.socket.emit("interaction",{type:"newyear_tree"});
+}
+
 
 // idling at town with merch stand open
 function idling(){
@@ -494,6 +518,13 @@ on_cm = (from: string, data: any) => {
 				smart_move("main");
 			}
 		} else if (data.message === "data") {
+			if( (typeof data.server_region != "undefined" && typeof data.server_id != "undefined") && (data.server_region != server.region || data.server_id != server.id)){
+				game_log("moving to " + data.server_region + data.server_id);
+				if(!(state === State.UPGRADE || state === State.SELL || state === State.COMPOUND))
+					setTimeout(() => {
+						change_server(data.server_region, data.server_id);
+					}, 10 * 1000);
+			}
 			if (from === "notlusW") {
 				warrior["name"] = data.name;
 				warrior["gold"] = data.gold;
@@ -537,9 +568,9 @@ on_cm = (from: string, data: any) => {
 				if ( lootTargets[i] === data.name){
 					lootTargets.splice(i, 1);
 				}
-      }
-      game_log(data.name);
-      registerLoots();
+			}
+			game_log("loot done: " + data.name);
+			registerLoots();
 		}else{
 			show_json(data);
 		}
@@ -565,10 +596,10 @@ setInterval(() => {
 		if(!party[value]) send_party_invite(value);
 	})
 	const obj = [warrior, mage, priest, merchant];
-	const response = fetch("http://68.183.227.231:6969/", {
-	method: 'POST',
-	body: JSON.stringify(obj),
-	headers: {'Content-Type': 'application/json; charset=UTF-8'} });
+	// const response = fetch("http://68.183.227.231:6969/", {
+	// method: 'POST',
+	// body: JSON.stringify(obj),
+	// headers: {'Content-Type': 'application/json; charset=UTF-8'} });
 }, 1000);
 map_key("1", "snippet", "parent.stop_runner();");
 map_key("2", "snippet", "parent.start_runner();");

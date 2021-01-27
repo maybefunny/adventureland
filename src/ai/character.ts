@@ -1,24 +1,34 @@
 const min_potions = 50; //The number of potions at which to do a resupply run.
 const purchase_amount = 1000;//How many potions to buy at once.
-const potion_types = ["hpot0", "mpot0"];//The types of potions to keep supplied.
 const goldStoreTreshold = 1000000;
+let potion_types = ["hpot0", "mpot0"];//The types of potions to keep supplied.
+let angle = 0;
+let useSkill = false;
+let kane: any;
+if(character.ctype == "ranger" && useSkill == true) potion_types[1] = "mpot1";
 
 export enum State {
   ATTACK_MODE,
   BOSS_MODE,
+  KITING_MODE,
+  CHRISTMAS_MODE,
 	IDLE,
-	GIVE_GOLD,
   RESUPPLY_POTIONS,
   STORE_LOOT,
+  GET_HOLIDAY_SPIRITS,
+}
+
+export function set_kane(loc: any){
+  kane = loc;
 }
 
 export function start_attacking(state: State, monsterTargets: Array<string>) {
-	if (state !== State.ATTACK_MODE && state !== State.BOSS_MODE || character.rip || is_moving(character) || !monsterTargets.length) { return };
+	if (state === State.IDLE || state === State.RESUPPLY_POTIONS || state === State.STORE_LOOT || character.rip || (is_moving(character) && state !== State.KITING_MODE) || !monsterTargets.length) { return };
   let target;
   
   if(character.ctype === "priest"){				
     let war = get_player("notlusW")
-    if(war !== undefined){
+    if(war){
       if(war.hp / war.max_hp < 0.90){
         heal(war);
       }
@@ -27,7 +37,19 @@ export function start_attacking(state: State, monsterTargets: Array<string>) {
 	
 	target = get_targeted_monster();
 	if (!target) {
-		if ((state === State.BOSS_MODE && character.ctype === "warrior") || (state === State.ATTACK_MODE && character.hp/character.max_hp > 0.75)) {
+    if(state === State.CHRISTMAS_MODE){
+      // if (parent.S.hasOwnProperty('grinch') && parent.S['grinch'].live) {
+      //   if (kane) {
+      //     smart_move(kane);
+      //   } else {
+      //     smart_move(parent.S['grinch']);
+      //   }
+      // }else 
+      if(parent.S.hasOwnProperty('snowman') && parent.S['snowman'].live){
+        smart_move(parent.S['snowman']);
+      }
+    }
+		if ((state === State.BOSS_MODE && character.ctype === "warrior") || (state === State.ATTACK_MODE && character.hp/character.max_hp > 0.75) || state === State.KITING_MODE || state === State.CHRISTMAS_MODE) {
       target = find_viable_targets(monsterTargets)[0];
 			// target = get_nearest_monster({ min_xp: 100, max_att: 120 });
 		}
@@ -39,28 +61,58 @@ export function start_attacking(state: State, monsterTargets: Array<string>) {
 			change_target(target);
 		} else {
       if(!smart.moving){
-        set_message("Moving to a target");
         smart_move({ to: monsterTargets[0] });
         return null;
       }
 		}
-	}
+  }
+  if(target && state == State.KITING_MODE){
+    const x= target.x;
+    const y= target.y;
+
+    let range = character.range - 5;
+
+    angle += 5 % 360;
+
+    const coord = getKiteCoord(x, y, angle, range);
+    
+    move(coord[0], coord[1]);
+    
+    if(can_attack(target)){
+      set_message("Attacking");
+      attack(target);
+    }
+  }
 	
 	if (target && !is_in_range(target)) {
-		move(
-			character.x + (target.x - character.x) / 2,
-			character.y + (target.y - character.y) / 2
-			);
-			// Walk half the distance
-		} else if (target && can_attack(target)) {
-      const playerTarget = get_target_of(target);
-      if(state === State.BOSS_MODE && character.ctype !== "warrior" && playerTarget && playerTarget.id !== "notlusW"){
-        set_message("Waiting for warrior");
-        return null;
-      } 
-      set_message("Attacking");
-			attack(target);
-		}
+    // Walk half the distance
+    move(
+      character.x + (target.x - character.x) / 2,
+      character.y + (target.y - character.y) / 2
+    );
+  }else {
+    if(useSkill == true && character.ctype == "ranger" && character.mp >= 300){
+      if(target && can_attack(target)){
+        set_message("3shot");
+        use_skill("3shot", target);
+      }
+    }else{
+      if (target && can_attack(target)) {
+        const playerTarget = get_target_of(target);
+        if(state === State.BOSS_MODE && character.ctype !== "warrior" && playerTarget && playerTarget.id !== "notlusW"){
+          set_message("Waiting for warrior");
+          return null;
+        }
+        set_message("Attacking");
+        attack(target);
+      }
+    }
+  }
+}
+
+export function get_holiday_spirits(){
+  if(!smart.moving) smart_move({ to:"town"});
+	parent.socket.emit("interaction",{type:"newyear_tree"});
 }
 
 // credit: https://github.com/Spadar/AdventureLand
@@ -98,6 +150,10 @@ export function state_controller(currentState: State){
     });
     new_state = State.STORE_LOOT;
   }
+
+  // if(!character.s.holidayspirit){
+  //   new_state = State.GET_HOLIDAY_SPIRITS;
+  // }
 	
 	return new_state;
 }
@@ -168,4 +224,10 @@ function find_viable_targets(monsterTargets : any) {
       }
   });
   return monsters;
+}
+
+function getKiteCoord(xCoord: number, yCoord: number, angle: number, length: number) {
+  length = typeof length !== 'undefined' ? length : 10;
+  angle = angle * Math.PI / 180; // if you're using degrees instead of radians
+  return [length * Math.cos(angle) + xCoord, length * Math.sin(angle) + yCoord]
 }

@@ -1,25 +1,56 @@
 import { makeButton, is_me, characters } from "../utils/utils"
-import { start_attacking, State, resupply_potions, state_controller } from "./character";
+import { start_attacking, State, resupply_potions, get_holiday_spirits, state_controller, set_kane } from "./character";
+
+performance_trick();
+pause();
 
 let baseState = State.ATTACK_MODE;
 let storingLoot = false;
 let monsterTargets = new Array();
 const goldMinimumTreshold = 100000;
+const defaultServerRegion = "US";
+const defaultServerName = "I";
+let currentServerRegion = server.region;
+let currentServerName = server.id;
 
 switch (character.name){
   case "notlusW":
-    monsterTargets = ["minimush"];
+    baseState = State.CHRISTMAS_MODE;
+    monsterTargets = ["grinch", "snowman", "arcticbee"];
     break;
   case "notlusssRa":
-    monsterTargets = ["bee"];
+    baseState = State.CHRISTMAS_MODE;
+    monsterTargets = ["grinch", "snowman", "arcticbee"];
     break;
   case "notlusRa2":
     monsterTargets = ["bee"];
     break;
-  }
+  case "notlus":
+    baseState = State.CHRISTMAS_MODE;
+    monsterTargets = ["grinch", "snowman", "arcticbee"];
+    break;
+  case "notlussPr":
+    baseState = State.CHRISTMAS_MODE;
+    monsterTargets = ["grinch", "snowman", "arcticbee"];
+    break;
+  case "notlusRg":
+    baseState = State.KITING_MODE;
+    monsterTargets = ["grinch", "snowman", "arcticbee"];
+    break;
+}
 
 load_code('utils')
 setInterval(() => {
+  if(baseState == State.CHRISTMAS_MODE){
+    // if(parent.S.hasOwnProperty('grinch') && parent.S['grinch'].live){
+    //   monsterTargets = ["grinch"];
+    // }else 
+    if(parent.S.hasOwnProperty('snowman') && parent.S['snowman'].live){
+      monsterTargets = ["snowman"];
+    }else if(!server.pvp) {
+      monsterTargets = ["arcticbee"];
+    }
+  }
   let state = state_controller(baseState);
 	switch (state) {
 		case State.ATTACK_MODE:
@@ -30,6 +61,14 @@ setInterval(() => {
       set_message("boss");
       start_attacking(state, monsterTargets)
       break;
+    case State.CHRISTMAS_MODE:
+      set_message("christmas");
+      start_attacking(state, monsterTargets)
+      break;
+    case State.KITING_MODE:
+      set_message("kiting");
+      start_attacking(state, monsterTargets)
+      break;
 		case State.RESUPPLY_POTIONS:
       set_message("waiting for pots");
 			resupply_potions();
@@ -37,7 +76,10 @@ setInterval(() => {
     case State.STORE_LOOT:
       set_message("loot");
       storingLoot = true;
-      state = State.ATTACK_MODE;
+      break;
+    case State.GET_HOLIDAY_SPIRITS:
+      set_message("spirit");
+      get_holiday_spirits();
       break;
     case State.IDLE:
       set_message("idle");
@@ -75,7 +117,11 @@ setInterval(function () {
 	//Heal With Potions if we're below 75% hp.
 	if (character.max_hp - character.hp > 200 || character.max_mp - character.mp > 300 || character.mp == 0) {
 		use_hp_or_mp();
-	}
+  }
+  
+  if(character.rip){
+    respawn();
+  }
 }, 500 );
 
 // loot storing handler
@@ -84,7 +130,7 @@ setInterval(() => {
   const merch = get_player('notlusMc');
   let skippedItems = 0;
   if(merch && is_in_range(merch, 'mluck')){
-    for (var i = 0; i < 42; i++) {
+    for (var i = 1; i < 42; i++) {
       const item = character.items[i];
       if(!item || parent.G.items[item.name].type === "pot"){
         skippedItems++;
@@ -94,15 +140,82 @@ setInterval(() => {
     }
     if(character.gold > goldMinimumTreshold) send_gold("notlusMc", character.gold - goldMinimumTreshold);
   }
-  if(character.esize >=20 ){
+  if(character.esize >20 && character.gold < 1000000){
     storingLoot = false;
-    baseState = State.ATTACK_MODE;
     send_cm("notlusMc", {
       message: "loot:done",
       name: character.name,
     });
   }
 }, 1000/4);
+
+// handle server switching
+setInterval(() => {
+  if(baseState === State.CHRISTMAS_MODE){
+    GetServerStatuses(s => { 
+      let liveEvents = s.filter(e => true == e.live)
+      let priority = liveEvents[0];
+    
+      // for(let event of liveEvents)
+      // {
+      //   if(event.eventname === "grinch" && (priority.eventname !== "grinch" || event.hp < priority.hp)){
+      //     priority = event;
+      //   }
+      // }
+      // if(priority && priority.eventname == "grinch"){
+      //   if(priority.server_identifier != "PVP" && (currentServerRegion  != priority.server_region || currentServerName != priority.server_identifier)){
+      //     currentServerRegion = priority.server_region;
+      //     currentServerName = priority.server_identifier;
+      //     change_server(priority.server_region, priority.server_identifier);
+      //   }
+      //   return;
+      // }else{
+      //   game_log("no grinch")
+      
+        for(let event of liveEvents)
+        {
+          if(event.eventname === "snowman" && (priority.eventname !== "snowman" || event.hp < priority.hp)){
+            priority = event;
+          }
+        }
+        if(priority && priority.eventname === "snowman"){
+          if(priority.server_identifier != "PVP" && (currentServerRegion  != priority.server_region || currentServerName != priority.server_identifier)){
+            currentServerRegion = priority.server_region;
+            currentServerName = priority.server_identifier;
+            change_server(priority.server_region, priority.server_identifier);
+          }
+          return;
+        }else{
+          game_log("no snowman")
+          if(server.pvp && currentServerRegion  != defaultServerRegion || currentServerName != defaultServerName){
+              currentServerRegion = defaultServerRegion;
+              currentServerName = defaultServerName;
+            change_server(defaultServerRegion, defaultServerName);
+          }
+          return;
+        }
+      // }
+    });
+  }else{
+    if(currentServerRegion  != defaultServerRegion || currentServerName != defaultServerName){
+        currentServerRegion = defaultServerRegion;
+        currentServerName = defaultServerName;
+      change_server(defaultServerRegion, defaultServerName);
+    }
+  }
+}, 1000*10);
+
+// get kane position
+// setInterval(() => {
+//   if(baseState == State.CHRISTMAS_MODE){
+//     if(parent.S.hasOwnProperty('grinch') && parent.S['grinch'].live){
+//       game_log('locating kane');
+//       send_cm('Escp','kane');
+//       send_cm("RisingKyron", "kane");
+//       send_cm("Foaly", "kane");
+//     }
+//   }
+// }, 1000 * 3);
 
 on_cm = (from: string, data: any) => {    
 	if (is_me(from)) {
@@ -117,12 +230,27 @@ on_cm = (from: string, data: any) => {
 				max_xp: character.max_xp,
 				x: character.x,
 				y: character.y,
-				map: character.map
+        map: character.map,
+        server_region: server.region,
+        server_id: server.id
 			});
 		}
-	}
+  }else{
+    // console.log(data);
+    set_kane(data);
+  }
 };
 
+function GetServerStatuses(callback: any)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(JSON.parse(xmlHttp.responseText));
+    }
+    xmlHttp.open("GET", "https://www.aldata.info/api/ServerStatus", true); // true for asynchronous 
+    xmlHttp.send(null);
+}
 
 map_key("1", "snippet", "parent.stop_runner();");
 map_key("2", "snippet", "parent.start_runner();");
